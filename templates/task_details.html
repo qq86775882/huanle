@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务详情 - {{ task.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 任务详情</h1>
+            <p>任务ID: {{ task.id }}</p>
+        </div>
+        
+        <div class="content">
+            <div class="task-info">
+                <h2>任务信息</h2>
+                
+                <div class="task-stats">
+                    <div class="stat-card total">
+                        <h3>总量</h3>
+                        <div class="value">{{ task.total_count }}</div>
+                    </div>
+                    <div class="stat-card completed">
+                        <h3>已完成</h3>
+                        <div class="value">{{ task.completed_count }}</div>
+                    </div>
+                    <div class="stat-card existing">
+                        <h3>已存在</h3>
+                        <div class="value">{{ task.existing_count }}</div>
+                    </div>
+                    <div class="stat-card remaining">
+                        <h3>剩余</h3>
+                        <div class="value">{{ task.remaining_count }}</div>
+                    </div>
+                </div>
+                
+                <div class="task-status {% if task.status == 'completed' %}status-completed{% elif task.status == 'stopped' %}status-stopped{% else %}status-in-progress{% endif %}" data-status="{{ task.status }}">
+                    {% if task.status == 'completed' %}✅ 已完成{% elif task.status == 'stopped' %}🛑 已停止{% else %}🔄 进行中{% endif %}
+                </div>
+                
+                <div class="task-actions">
+                    <a href="{{ url_for('index') }}" class="action-btn back-btn">返回列表</a>
+                    {% if task.status == 'running' %}
+                        <button class="action-btn stop-btn" onclick="stopTask('{{ task.id }}')">停止任务</button>
+                    {% elif task.status == 'stopped' %}
+                        <button class="action-btn start-btn" onclick="restartTask('{{ task.id }}')">开始任务</button>
+                    {% endif %}
+                </div>
+                
+                <div class="refresh-control">
+                    <div class="refresh-toggle">
+                        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()" {% if task.status == 'running' %}checked{% endif %} {% if task.status == 'completed' or task.status == 'stopped' %}disabled{% endif %}>
+                        <label for="autoRefresh">自动刷新</label>
+                    </div>
+                    <div class="refresh-status {% if task.status == 'running' %}refresh-active{% else %}refresh-inactive{% endif %}">
+                        {% if task.status == 'running' %}🔄 刷新中{% else %}⏸️ 已暂停{% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>📱 手机号</th>
+                            <th>📊 状态</th>
+                            <th>📝 结果</th>
+                            <th>⏰ 创建时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountsTableBody">
+                        {% for account in accounts %}
+                            <tr>
+                                <td>{{ account[0] }}</td>
+                                <td>
+                                    <span class="status-{{ account[1] }}">
+                                        {% if account[1] == 'pending' %}⏳ 待处理
+                                        {% elif account[1] == 'completed' %}✅ 已完成
+                                        {% elif account[1] == 'existing' %}👤 已存在
+                                        {% else %}❌ {{ account[1] }}{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ account[2] }}</td>
+                                <td>{{ account[3] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/task_details.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 用户注册系统</h1>
+            <p>高效、安全的批量注册工具</p>
+        </div>
+        
+        <div class="content">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="controls">
+                <h2 class="page-title">📋 任务列表</h2>
+                <button class="create-btn" onclick="openModal()">
+                    <span>➕</span> 创建任务
+                </button>
+            </div>
+            
+            <div class="table-container">
+                {% if tasks %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>🆔 任务ID</th>
+                                <th>🎫 邀请码</th>
+                                <th>🔒 密码</th>
+                                <th>⏰ 创建时间</th>
+                                <th>📊 状态</th>
+                                <th>🔢 总量</th>
+                                <th>✅ 已完成</th>
+                                <th>👤 已存在</th>
+                                <th>⏳ 剩余</th>
+                                <th>⚙️ 操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                                <tr>
+                                    <td>{{ task.id }}</td>
+                                    <td>{{ task.invite_code }}</td>
+                                    <td>••••••••</td>
+                                    <td>{{ task.created_at }}</td>
+                                    <td>
+                                        <span class="task-status {% if task.status == 'completed' %}status-completed{% elif task.status == 'stopped' %}status-stopped{% else %}status-in-progress{% endif %}">
+                                            {% if task.status == 'completed' %}✅ 已完成{% elif task.status == 'stopped' %}🛑 已停止{% else %}🔄 进行中{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ task.total_count }}</td>
+                                    <td>{{ task.completed_count }}</td>
+                                    <td>{{ task.existing_count }}</td>
+                                    <td>{{ task.remaining_count }}</td>
+                                    <td>
+                                        <button class="action-btn view-btn" onclick="goToTaskDetails('{{ task.id }}')">查看详情</button>
+                                        {% if task.status == 'running' %}
+                                            <button class="action-btn stop-btn" onclick="stopTask('{{ task.id }}')">停止</button>
+                                        {% elif task.status == 'stopped' %}
+                                            <button class="action-btn start-btn" onclick="restartTask('{{ task.id }}')">开始</button>
+                                        {% endif %}
+                                        {% if task.status == 'completed' or task.status == 'stopped' %}
+                                            <button class="action-btn stop-btn" onclick="deleteTask('{{ task.id }}')">删除</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="empty-state">
+                        <p>📭 暂无任务</p>
+                        <p>请创建第一个任务开始使用</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 class="modal-title">📋 创建新任务</h2>
+            <form method="POST" action="{{ url_for('create_task_route') }}">
+                <div class="form-group">
+                    <label for="invite_code">邀请码：</label>
+                    <input type="text" id="invite_code" name="invite_code" required placeholder="请输入邀请码">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码：</label>
+                    <input type="password" id="password" name="password" required placeholder="请输入密码">
+                </div>
+                
+                <div class="form-group">
+                    <label for="min_delay">最小延迟时间（秒）：</label>
+                    <input type="number" id="min_delay" name="min_delay" value="1" min="0" required placeholder="最小延迟时间">
+                </div>
+                
+                <div class="form-group">
+                    <label for="max_delay">最大延迟时间（秒）：</label>
+                    <input type="number" id="max_delay" name="max_delay" value="5" min="0" required placeholder="最大延迟时间">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone_text">手机号列表（每行一个）：</label>
+                    <textarea id="phone_text" name="phone_text" required placeholder="请输入手机号，每行一个&#10;例如：&#10;13800138000&#10;13900139000&#10;15600156000"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn cancel-btn" onclick="closeModal()">取消</button>
+                    <button type="submit" class="modal-btn submit-btn">创建任务</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+</body>
+</html>
